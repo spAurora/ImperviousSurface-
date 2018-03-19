@@ -181,9 +181,19 @@ int main()
 		//searchTreeNodeWithLevel(&hierarchicalTree[2*finalNumberOfLabels-2], level, finalNumberOfLabels);
 		int setValue = -1;
 		setAllNodeValue(newLabels, level, &hierarchicalTree[2*finalNumberOfLabels-2], setValue, csps);
+		
+
 
 		printf("融合后面块数：%d\n", setValue+1);
 		
+		//放弃层次树结点中的其它信息，只保留层次信息
+		//基于新联通图层建立新对象面块集合以及拓扑关系信息
+		int objectNum = setValue + 1;
+		ObjectNode* oNode = new ObjectNode[objectNum];
+		ArrayHeadGraphNode *newAHGn = new ArrayHeadGraphNode[objectNum];
+		createNewObjectSet(newLabels, srimg, oNode, objectNum, width, height);
+		createNewToplogicalGraph(newLabels, width, height, newAHGn, objectNum);
+
 		//融合效果展示
 		Mat imgMerge = srimg.clone();
 		for (int i = 1; i<height-1; i++)

@@ -8,6 +8,7 @@ public:
 	double avgG;
 	double avgR;
 	int pixelnum;
+
 	vector<int> pixelLocation;  //容纳构成超像素的像素
 
 	//list<CSuperPixelSet> childspslist; //孩子结点链表
