@@ -5,12 +5,21 @@ public:
 	int objectTypes;  //地物类别
 	
 	//协方差矩阵
+	//形态学相关
 	double varxx;
 	double varyy;
 	double covxy;
 	int borderLength;
 	double shapeIndex;
 	double density;
+
+	//光谱相关
+	double brightnessBGRNIR;
+	double brightnessBGR;
+	double NDVI;
+	double NDWI;
+	double SBI;
+	double BAI;
 
 	ObjectNode()
 	{
@@ -19,8 +28,8 @@ public:
 	}
 
 	//成员函数
-	//获取形态信息
-	//初始化协方差矩阵
+	//初始化形态信息
+	//计算依赖协方差矩阵
 	void formFeatureInit(int width)
 	{
 		vector<int>::iterator it;
@@ -49,6 +58,16 @@ public:
 		this->density = sqrt((double)this->pixelnum)/(1+sqrt(varxx+varyy));
 	}
 
+	//初始化光谱信息
+	void spectralFeatureInit()
+	{
+		this->NDVI = (this->avgNIR - this->avgR)/(double)(this->avgNIR + this->avgR);
+		this->NDWI = (this->avgG - this->avgNIR)/(double)(this->avgG + this->avgNIR);
+		this->brightnessBGRNIR = (this->avgB + this->avgG + this->avgR + this->avgNIR)/4;
+		this->brightnessBGR = (this->avgB + this->avgG + this->avgR)/3;
+		this->BAI = (this->avgB - this ->avgNIR)/(this->avgB + this->avgNIR);
+		this->SBI = sqrt(this->avgR*this->avgR + this->avgNIR*this->avgNIR);
+	}
 
 
 
