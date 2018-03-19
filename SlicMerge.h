@@ -7,6 +7,7 @@ public:
 	double avgB;   //BGR均值
 	double avgG;
 	double avgR;
+	double avgNIR;
 	int pixelnum;
 
 	vector<int> pixelLocation;  //容纳构成超像素的像素
@@ -20,6 +21,7 @@ public:
 		avgB = 0;
 		avgG = 0;
 		avgR = 0;
+		avgNIR = 0;
 		pixelnum = 0;
 	}
 	CSuperPixelSet(int flevel, int fid)
@@ -51,6 +53,7 @@ public:
 	double avgB;   
 	double avgG;
 	double avgR;
+	double avgNIR;
 	//像素信息
 	int pixelnum;
 
@@ -61,6 +64,7 @@ public:
 		avgB = 0;
 		avgG = 0;
 		avgR = 0;
+		avgNIR = 0;
 		left = NULL;
 		right = NULL;
 	}
@@ -161,15 +165,17 @@ void createSuperPixelVector(int* label, int width, int height, CSuperPixelSet *c
 		{
 			csps[label[i*width+j]].pixelLocation.push_back(i*width+j);  //建立超像素与其中像素的关系
 			csps[label[i*width+j]].pixelnum++;
-			csps[label[i*width+j]].avgB += srimg.data[(i*width+j)*3];
-			csps[label[i*width+j]].avgG += srimg.data[(i*width+j)*3+1];
-			csps[label[i*width+j]].avgR += srimg.data[(i*width+j)*3+2];
+			csps[label[i*width+j]].avgB += srimg.data[(i*width+j)*4];
+			csps[label[i*width+j]].avgG += srimg.data[(i*width+j)*4+1];
+			csps[label[i*width+j]].avgR += srimg.data[(i*width+j)*4+2];
+			csps[label[i*width+j]].avgNIR += srimg.data[(i*width+j)*4+3];
 		}
 	for(int i = 0; i< superPixelNum;i++)
 	{
 		csps[i].avgB /= csps[i].pixelnum;
 		csps[i].avgG /= csps[i].pixelnum;
 		csps[i].avgR /= csps[i].pixelnum;
+		csps[i].avgNIR /= csps[i].pixelnum;
 	}
 	printf("-----------\n %lf \n ----------", csps[100].avgB);
 
@@ -180,6 +186,7 @@ void createSuperPixelVector(int* label, int width, int height, CSuperPixelSet *c
 		hierarchicalTree[i].avgB = csps[i].avgB;
 		hierarchicalTree[i].avgG = csps[i].avgG;
 		hierarchicalTree[i].avgR = csps[i].avgR;
+		hierarchicalTree[i].avgNIR = csps[i].avgNIR;
 		hierarchicalTree[i].pixelnum = csps[i].pixelnum;
 	}
 	//delete a;
@@ -358,7 +365,7 @@ void createToplogicalGraph(int*clabels, int width, int height, ArrayHeadGraphNod
 //计算光谱差
 double calculateDifference(BTreeNode t1, BTreeNode t2)
 {
-	return(sqrt( (t1.avgB-t2.avgB)*(t1.avgB-t2.avgB) + (t1.avgG-t2.avgG)*(t1.avgG-t2.avgG) + (t1.avgR-t2.avgR)*(t1.avgR-t2.avgR) ));
+	return(sqrt( (t1.avgB-t2.avgB)*(t1.avgB-t2.avgB) + (t1.avgG-t2.avgG)*(t1.avgG-t2.avgG) + (t1.avgR-t2.avgR)*(t1.avgR-t2.avgR) + (t1.avgNIR-t2.avgNIR)));
 }
 
 //检查是否重复
@@ -495,6 +502,7 @@ void DFS(int location,int *vnum, ArrayHeadGraphNode* mAhgn,BTreeNode* hierarchic
 				hierarchicalTree[graphAndTreeEnd].avgB = (hierarchicalTree[location].pixelnum*hierarchicalTree[location].avgB + hierarchicalTree[mit->ID].pixelnum*hierarchicalTree[mit->ID].avgB) / hierarchicalTree[graphAndTreeEnd].pixelnum;
 				hierarchicalTree[graphAndTreeEnd].avgG = (hierarchicalTree[location].pixelnum*hierarchicalTree[location].avgG + hierarchicalTree[mit->ID].pixelnum*hierarchicalTree[mit->ID].avgG) / hierarchicalTree[graphAndTreeEnd].pixelnum;
 				hierarchicalTree[graphAndTreeEnd].avgR = (hierarchicalTree[location].pixelnum*hierarchicalTree[location].avgR + hierarchicalTree[mit->ID].pixelnum*hierarchicalTree[mit->ID].avgR) / hierarchicalTree[graphAndTreeEnd].pixelnum;
+				hierarchicalTree[graphAndTreeEnd].avgNIR = (hierarchicalTree[location].pixelnum*hierarchicalTree[location].avgNIR + hierarchicalTree[mit->ID].pixelnum*hierarchicalTree[mit->ID].avgNIR) / hierarchicalTree[graphAndTreeEnd].pixelnum;
 				hierarchicalTree[graphAndTreeEnd].ID = graphAndTreeEnd;
 				return;
 			}
@@ -580,7 +588,7 @@ void createHierarchicalTree(ArrayHeadGraphNode* mAhgn,BTreeNode* hierarchicalTre
 	for (int i = 1; i <= levelindex; i++)
 	{
 		nowLevel++;
-		allowDifference =allowDifference + ((double)450/(double)levelindex);
+		allowDifference =allowDifference + ((double)510/(double)levelindex);
 		printf("allDifference:%lf\n", allowDifference);
 		//system("pause");
 		NodeMerge = false;

@@ -21,7 +21,7 @@ using namespace cv;
 int main()
 {
     //先不考虑Alpha通道
-    Mat srimg;
+    //Mat srimg;
     int width;
     int height;
     int sz;
@@ -47,13 +47,41 @@ int main()
     int numSuperpixels = 200;//default value
     double compactness = 10;//default value
 
-    //RGB读入
-    srimg = imread("D:\demo.bmp", 1);    //**
-    if (srimg.empty())
-    {   
-        printf("Can not open image.\n");
-        exit(0);
-    }
+    ////RGB读入
+    //srimg = imread("D:\demo.bmp", 1);    //**
+    //if (srimg.empty())
+    //{   
+    //    printf("Can not open image.\n");
+    //    exit(0);
+    //}
+
+	Mat zy1, zy2, zy3, zy4, srimg;
+	zy1 = imread("zy3-1.tif",0);
+	zy2 = imread("zy3-2.tif",0);
+	zy3 = imread("zy3-3.tif",0);
+	zy4 = imread("zy3-4.tif",0);
+	if (zy1.empty() || zy2.empty() || zy3.empty() || zy4.empty())
+	{
+		printf("Can not open Image\n");
+		system("pause");
+		exit(0);
+	}
+
+	CvSize size;
+	size.width = zy1.cols;
+	size.height = zy1.rows;
+	srimg.create(size.height, size.width, CV_8UC4);
+	for (int i = 0;i<size.height;i++)
+		for (int j = 0; j<size.width; j++)
+		{
+			srimg.data[(i*size.width+j)*4]=zy1.data[i*size.width+j];
+			srimg.data[(i*size.width+j)*4+1]=zy2.data[i*size.width+j];
+			srimg.data[(i*size.width+j)*4+2]=zy3.data[i*size.width+j];
+			srimg.data[(i*size.width+j)*4+3]=zy4.data[i*size.width+j];
+		}
+	namedWindow("srimg");
+	imshow("Superpixel",srimg);
+	waitKey(0);
     //分离三个RGB通道
     width = srimg.cols;
     height = srimg.rows;
@@ -61,19 +89,29 @@ int main()
     int* rin = new int[height*width];       //@可以用uchar节省空间
     int* gin = new int[height*width];
     int* bin = new int[height*width];
+	int* nirIn = new int[height*width];		//近红外波段
     double* lvec = new double[height*width]; //@同时为LAB开辟空间，可以优化
     double* avec = new double[height*width];
     double* bvec = new double[height*width];
     int* klabels = new int[height*width];
     int* clabels = new int[height*width];
     int* seedIndices = new int[height*width];
-    for (int i = 0; i < height; i++)
+    /*for (int i = 0; i < height; i++)
         for (int j = 0; j < width; j++)
         {
             bin[i*width + j] = srimg.data[(i*width + j)*3];
             gin[i*width + j] = srimg.data[(i*width + j)*3 + 1];
             rin[i*width + j] = srimg.data[(i*width + j)*3 + 2];
-        }
+        }*/
+
+	for (int i = 0; i < height; i++)
+		for (int j = 0; j < width; j++)
+		{
+			bin[i*width + j] = srimg.data[(i*width + j)*4];
+			gin[i*width + j] = srimg.data[(i*width + j)*4 + 1];
+			rin[i*width + j] = srimg.data[(i*width + j)*4 + 2];
+			nirIn[i*width+j] = srimg.data[(i*width + j)*4 + 3];
+		}
     //部分参数定义  转换可能有所不同
     numelements = 3;   //默认只对彩色图像做处理
     //numdims明显的二维
@@ -192,7 +230,7 @@ int main()
 		ObjectNode* oNode = new ObjectNode[objectNum];
 		ArrayHeadGraphNode *newAHGn = new ArrayHeadGraphNode[objectNum];
 		createNewObjectSet(newLabels, srimg, oNode, objectNum, width, height);
-		createNewToplogicalGraph(newLabels, width, height, newAHGn, objectNum);
+		createNewToplogicalGraph(newLabels, width, height, newAHGn, objectNum,oNode);
 
 		//融合效果展示
 		Mat imgMerge = srimg.clone();
@@ -202,9 +240,10 @@ int main()
 				//不考虑图像边缘
 				if (newLabels[i*width + j] != newLabels[(i-1)*width +j] || newLabels[i*width + j] != newLabels[(i+1)*width +j] || newLabels[i*width + j] != newLabels[i*width +j+1] || newLabels[i*width + j] != newLabels[i*width + j-1])
 				{
-					imgMerge.data[(i*width+j)*3] = 0;
-					imgMerge.data[(i*width+j)*3+1] = 0;
-					imgMerge.data[(i*width+j)*3+2] = 255;
+					imgMerge.data[(i*width+j)*4] = 0;
+					imgMerge.data[(i*width+j)*4+1] = 0;
+					imgMerge.data[(i*width+j)*4+2] = 255;
+					imgMerge.data[(i*width+j)*4+3] = 0;
 				}	
 			}
 
@@ -255,9 +294,10 @@ int main()
 			//不考虑图像边缘
 			if (clabels[i*width + j] != clabels[(i-1)*width +j] || clabels[i*width + j] != clabels[(i+1)*width +j] || clabels[i*width + j] != clabels[i*width +j+1] || clabels[i*width + j] != clabels[i*width + j-1])
 				{
-					imgSuperpixel.data[(i*width+j)*3] = 0;
-					imgSuperpixel.data[(i*width+j)*3+1] = 0;
-					imgSuperpixel.data[(i*width+j)*3+2] = 255;
+					imgSuperpixel.data[(i*width+j)*4] = 0;
+					imgSuperpixel.data[(i*width+j)*4+1] = 0;
+					imgSuperpixel.data[(i*width+j)*4+2] = 255;
+					imgSuperpixel.data[(i*width+j)*4+3] = 0;
 				}	
 		}
 

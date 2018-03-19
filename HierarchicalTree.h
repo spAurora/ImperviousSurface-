@@ -105,16 +105,19 @@ void createNewObjectSet(int* newLabels, cv::Mat &srimg, ObjectNode* oNode, int o
 		{
 			oNode[newLabels[i*width+j]].pixelLocation.push_back(i*width+j);  //建立超像素与其中像素的关系
 			oNode[newLabels[i*width+j]].pixelnum++;
-			oNode[newLabels[i*width+j]].avgB += srimg.data[(i*width+j)*3];
-			oNode[newLabels[i*width+j]].avgG += srimg.data[(i*width+j)*3+1];
-			oNode[newLabels[i*width+j]].avgR += srimg.data[(i*width+j)*3+2];
+			oNode[newLabels[i*width+j]].avgB += srimg.data[(i*width+j)*4];
+			oNode[newLabels[i*width+j]].avgG += srimg.data[(i*width+j)*4+1];
+			oNode[newLabels[i*width+j]].avgR += srimg.data[(i*width+j)*4+2];
+			oNode[newLabels[i*width+j]].avgNIR += srimg.data[(i*width+j)*4+3];
 		}
 	for(int i = 0; i< objectNum;i++)
 		{
 			oNode[i].avgB /= oNode[i].pixelnum;
 			oNode[i].avgG /= oNode[i].pixelnum;
 			oNode[i].avgR /= oNode[i].pixelnum;
+			oNode[i].avgNIR /= oNode[i].pixelnum;
 			oNode[i].objectTypes = 0; //定义地物类为未定义
+			//oNode[i].formFeatureInit(width);
 		}
 }
 
