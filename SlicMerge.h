@@ -192,6 +192,10 @@ void createSuperPixelVector(int* label, int width, int height, CSuperPixelSet *c
 	//delete a;
 }
 
+bool cmp(GraphNode first, GraphNode second) {
+	return first.ID > second.ID;
+}
+
 //创建初始化拓扑图
 //超像素图层、图片宽、高、图头结点数组、超像素数目
 void createToplogicalGraph(int*clabels, int width, int height, ArrayHeadGraphNode* mAhgn ,int superPixelnum)
@@ -200,7 +204,7 @@ void createToplogicalGraph(int*clabels, int width, int height, ArrayHeadGraphNod
 	
 	//初始化vHeadGraphList
 	
-	int show = 0;
+	//int show = 0;
 
 
 	//ArrayHeadGraphNode *mAhgn = new ArrayHeadGraphNode[superPixelnum];
@@ -242,6 +246,26 @@ void createToplogicalGraph(int*clabels, int width, int height, ArrayHeadGraphNod
 					}
 			}
 		}
+
+		//排序
+		clock_t startTime,endTime; 
+		startTime = clock();
+		for (int i = 0; i<superPixelnum;i++)
+			mAhgn[i].pGraphNodeList.sort(cmp);
+		endTime = clock();
+		cout << "排序Totle Time : " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
+		
+		forward_list<GraphNode>::iterator it;
+		for (it = mAhgn[30].pGraphNodeList.begin(); it!= mAhgn[30].pGraphNodeList.end(); it++)
+			printf("%d -> ", it->ID);
+		printf("\n");
+		for (it = mAhgn[256].pGraphNodeList.begin(); it!= mAhgn[256].pGraphNodeList.end(); it++)
+			printf("%d -> ", it->ID);
+		printf("\n");
+		for (it = mAhgn[1024].pGraphNodeList.begin(); it!= mAhgn[1024].pGraphNodeList.end(); it++)
+			printf("%d -> ", it->ID);
+		printf("\n");
+		
 		/*for (int i = 0; i<superPixelnum; i++)
 			vHeadGraphList.push_front(HeadGraphNode(i, mAhgn[i].pGraphNodeList));*/
 
@@ -372,9 +396,17 @@ double calculateDifference(BTreeNode t1, BTreeNode t2)
 bool whetherThisValueInTheOtherSet(GraphNode mNode, forward_list<GraphNode> list)
 {
 	forward_list<GraphNode>::iterator it;
+	long startTime, endTime;
+	startTime = clock();
 	for (it = list.begin(); it != list.end(); it++)
 		if (it->ID == mNode.ID)
+		{
+			//endTime = clock();
+			//printf("检查重复占用的ms:%ld\n", startTime-endTime);
 			return true;
+		}
+	//endTime = clock();
+	//printf("检查重复占用的ms:%ld\n", startTime-endTime);
 	return false;
 }
 
@@ -384,6 +416,45 @@ void delNode(ArrayHeadGraphNode* mAhgn, int delInId, int delId_1, int delId_2, i
 	//printf("已进入\n");
 	if(mAhgn[delInId].pGraphNodeList.empty())
 		printf("邻接为空，存在逻辑错误!");
+
+	//forward_list<GraphNode>::iterator finalLocation[2];
+	//forward_list<GraphNode>::iterator it_1 = mAhgn[delInId].pGraphNodeList.begin();
+	//forward_list<GraphNode>::iterator it_2 = mAhgn[delInId].pGraphNodeList.end();
+	//forward_list<GraphNode>::iterator midIt;
+	//int midShiftValue = (it_2 - it_1)/2; 
+	//
+	//while (it_1->ID != it_2->ID)
+	//{
+	//	midShiftValue = (it_2 - it_1)/2;
+	//	midIt = it_1 + midShiftValue;
+	//	if (midIt->ID > delId_1)
+	//		it_1 = midIt + 1;
+	//	else if(midIt->ID < delId_1)
+	//		it_2 = midIt;
+	//	else
+	//	{
+	//		finalLocation[0] = midIt;
+	//		break;
+	//	}
+	//}
+	//while (it_1->ID != it_2->ID)
+	//{
+	//	midShiftValue = (it_2 - it_1)/2;
+	//	midIt = it_1 + midShiftValue;
+	//	if (midIt->ID > delId_2)
+	//		it_1 = midIt + 1;
+	//	else if(midIt->ID < delId_2)
+	//		it_2 = midIt;
+	//	else
+	//	{
+	//		finalLocation[1] = midIt;
+	//		break;
+	//	}
+	//}
+	//
+	//for (it_1 = mAhgn[delInId].pGraphNodeList.begin(); it_1 != finalLocation[0]; it_1++)
+
+
 	int sum = 0;
 	forward_list<GraphNode>::iterator prev=mAhgn[delInId].pGraphNodeList.before_begin();  //表示flst的“首前元素”
 	forward_list<GraphNode>::iterator curr=mAhgn[delInId].pGraphNodeList.begin();  //表示flst中的第一个元素
@@ -408,14 +479,65 @@ void calculateUnion(int childNodeLoc_1, int childNodeLoc_2, int graphAndTreeEnd,
 {
 	mAhgn[childNodeLoc_1].hadRemove = true;
 	mAhgn[childNodeLoc_2].hadRemove = true;
+
+	long startTime, endTime;
+	startTime = clock();
 	//取并集
-	forward_list<GraphNode>::iterator it;
+	/*forward_list<GraphNode>::iterator it;
 	for (it = mAhgn[childNodeLoc_1].pGraphNodeList.begin(); it!= mAhgn[childNodeLoc_1].pGraphNodeList.end(); it++)
 		if (it->ID != childNodeLoc_2)
 		mAhgn[graphAndTreeEnd].pGraphNodeList.push_front(*it);
 	for (it = mAhgn[childNodeLoc_2].pGraphNodeList.begin(); it != mAhgn[childNodeLoc_2].pGraphNodeList.end(); it++)
 		if(whetherThisValueInTheOtherSet(*it, mAhgn[childNodeLoc_1].pGraphNodeList) == false && it->ID != childNodeLoc_1)
-			mAhgn[graphAndTreeEnd].pGraphNodeList.push_front(*it);
+			mAhgn[graphAndTreeEnd].pGraphNodeList.push_front(*it);*/
+
+	//优化后的取并集
+	forward_list<GraphNode>::iterator it_1 = mAhgn[childNodeLoc_1].pGraphNodeList.begin();
+	forward_list<GraphNode>::iterator it_2 = mAhgn[childNodeLoc_2].pGraphNodeList.begin();
+	while (it_1 != mAhgn[childNodeLoc_1].pGraphNodeList.end() && it_2 != mAhgn[childNodeLoc_2].pGraphNodeList.end())
+	{
+		//要删除的两个节点不进入并集
+		if (it_1->ID == childNodeLoc_1 || it_1->ID == childNodeLoc_2)
+		{
+			it_1++;
+			continue;
+		}
+		if (it_2->ID == childNodeLoc_1 || it_2->ID == childNodeLoc_2)
+		{
+			it_2++;
+			continue;
+		}
+		if(it_1->ID > it_2->ID)
+		{
+			mAhgn[graphAndTreeEnd].pGraphNodeList.push_front(*it_1);
+			it_1++;
+		}
+		else if(it_1->ID < it_2->ID)
+		{
+			mAhgn[graphAndTreeEnd].pGraphNodeList.push_front(*it_2);
+			it_2++;
+		}
+		else //两者相等
+		{
+			mAhgn[graphAndTreeEnd].pGraphNodeList.push_front(*it_2); //随便进入一个
+			it_1++;
+			it_2++;
+		}
+	}
+	while(it_1 != mAhgn[childNodeLoc_1].pGraphNodeList.end())
+	{
+		mAhgn[graphAndTreeEnd].pGraphNodeList.push_front(*it_1);
+		it_1++;
+	}
+	while(it_2 != mAhgn[childNodeLoc_2].pGraphNodeList.end())
+	{
+		mAhgn[graphAndTreeEnd].pGraphNodeList.push_front(*it_2);
+		it_2++;
+	}
+	//翻转
+	mAhgn[graphAndTreeEnd].pGraphNodeList.reverse();
+	endTime = clock();
+	cout << "取并集part1:Totle Time : " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
 
 	//check
 	if(mAhgn[childNodeLoc_1].pGraphNodeList.empty() == true)
@@ -424,6 +546,7 @@ void calculateUnion(int childNodeLoc_1, int childNodeLoc_2, int graphAndTreeEnd,
 		printf("空2\n");
 
 	//修改其余邻接结点的拓扑表
+	startTime = clock();
 	forward_list<GraphNode>::iterator itt;
 	itt = mAhgn[1].pGraphNodeList.begin();
 	//printf("WTF %d\n", itt->ID);
@@ -448,6 +571,8 @@ void calculateUnion(int childNodeLoc_1, int childNodeLoc_2, int graphAndTreeEnd,
 			delNode(mAhgn, itt->ID, childNodeLoc_1, childNodeLoc_2, graphAndTreeEnd);
 		}
 	}
+	endTime = clock();
+	cout << "取并集part2:Totle Time : " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
 	//printf("结点2的邻接点清理完毕(不包括要融合的两个点)\n");
 	/*for (itt = mAhgn[childNodeLoc_2].pGraphNodeList.begin(); itt!= mAhgn[childNodeLoc_2].pGraphNodeList.end(); itt++)
 		if (itt->ID != childNodeLoc_1);
@@ -458,7 +583,7 @@ void calculateUnion(int childNodeLoc_1, int childNodeLoc_2, int graphAndTreeEnd,
 }
 
 //递归深搜
-void DFS(int location,int *vnum, ArrayHeadGraphNode* mAhgn,BTreeNode* hierarchicalTree,int &graphAndTreeEnd, int nowLevel, double & allowDifference, bool& NodeMerge, int superPixelNum)
+void DFS(int location,int *vnum, ArrayHeadGraphNode* mAhgn,BTreeNode* hierarchicalTree,int &graphAndTreeEnd, int nowLevel, double & allowDifference, bool& NodeMerge, int superPixelNum, int &mDepth)
 {
 	if (NodeMerge == true)   //已经发生过融合则直接返回
 		return;
@@ -469,10 +594,12 @@ void DFS(int location,int *vnum, ArrayHeadGraphNode* mAhgn,BTreeNode* hierarchic
 	}
 	if(vnum[location]!=0)
 		return;
-
+	mDepth++;
 	vnum[location] = 1;
 	//printf("%d\n", location);
 	//------ 融合
+	clock_t startTime,endTime; 
+	
 	forward_list<GraphNode>::iterator mit;
 	for(mit = mAhgn[location].pGraphNodeList.begin(); mit!= mAhgn[location].pGraphNodeList.end(); mit++)
 		if (mAhgn[mit->ID].hadRemove == false)
@@ -483,13 +610,16 @@ void DFS(int location,int *vnum, ArrayHeadGraphNode* mAhgn,BTreeNode* hierarchic
 				//删除这两个节点
 				//标记已经发生过融合
 				//直接退出该函数
+				
 				NodeMerge = true;
 				graphAndTreeEnd++;
-
+				
 				printf("融合即将开始,两结点c1 c2下标为%d, %d\n, level: %d\n", location, mit->ID, nowLevel);
 				//printf("开始融合：\n");
+				startTime = clock();
 				calculateUnion(location, mit->ID, graphAndTreeEnd, mAhgn, hierarchicalTree); //拓扑图取并集********
-
+				endTime = clock();
+				cout << "取并集Totle Time : " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
 				//printf("扩展到的下标：%d\n", graphAndTreeEnd);
 				
 				//mAhgn[mit->ID].hadRemove = true;
@@ -504,6 +634,7 @@ void DFS(int location,int *vnum, ArrayHeadGraphNode* mAhgn,BTreeNode* hierarchic
 				hierarchicalTree[graphAndTreeEnd].avgR = (hierarchicalTree[location].pixelnum*hierarchicalTree[location].avgR + hierarchicalTree[mit->ID].pixelnum*hierarchicalTree[mit->ID].avgR) / hierarchicalTree[graphAndTreeEnd].pixelnum;
 				hierarchicalTree[graphAndTreeEnd].avgNIR = (hierarchicalTree[location].pixelnum*hierarchicalTree[location].avgNIR + hierarchicalTree[mit->ID].pixelnum*hierarchicalTree[mit->ID].avgNIR) / hierarchicalTree[graphAndTreeEnd].pixelnum;
 				hierarchicalTree[graphAndTreeEnd].ID = graphAndTreeEnd;
+				
 				return;
 			}
 			else
@@ -515,6 +646,7 @@ void DFS(int location,int *vnum, ArrayHeadGraphNode* mAhgn,BTreeNode* hierarchic
 		{
 			//printf("结点已被移除，无法融合：code 1\n");
 		}
+	
 	//------
 	//printf("\n当前结点与周边所有邻接的好像都没法融合，进行下一步(递归):\n**************************************\n");
 	//forward_list<GraphNode>::iterator itt;
@@ -540,7 +672,7 @@ void DFS(int location,int *vnum, ArrayHeadGraphNode* mAhgn,BTreeNode* hierarchic
 		{	int temp;
 			temp = itp->ID;
 			//printf("temp(也就是it->ID):%d\n");
-			DFS(temp, vnum, mAhgn, hierarchicalTree, graphAndTreeEnd, nowLevel, allowDifference, NodeMerge, superPixelNum);
+			DFS(temp, vnum, mAhgn, hierarchicalTree, graphAndTreeEnd, nowLevel, allowDifference, NodeMerge, superPixelNum,mDepth);
 		}
 		if (NodeMerge == true)
 			return;   //!!!!!!!!!!!
@@ -560,8 +692,10 @@ void traversalAndMerge(ArrayHeadGraphNode* mAhgn,BTreeNode* hierarchicalTree,int
 	for (int i = 0; i<=graphAndTreeEnd;i++)
 		if(vnum[i] == 0 && mAhgn[i].hadRemove == false)
 		{
+			int mDepth = 0;
 			//printf("从第%d开始遍历\n", i);
-			DFS(i, vnum, mAhgn, hierarchicalTree, graphAndTreeEnd, nowLevel, allowDifference, NodeMerge, superPixelNum); //图是完全连通的
+			DFS(i, vnum, mAhgn, hierarchicalTree, graphAndTreeEnd, nowLevel, allowDifference, NodeMerge, superPixelNum, mDepth); //图是完全连通的
+			printf("递归深度:%d\n",mDepth);
 			break;
 		}
 
@@ -598,7 +732,11 @@ void createHierarchicalTree(ArrayHeadGraphNode* mAhgn,BTreeNode* hierarchicalTre
 			//遍历并创建层次树
 			//printf("allDifference:%lf\n", allowDifference);
 			//system("pause");
+			clock_t startTime,endTime; 
+			startTime = clock();
 			traversalAndMerge(mAhgn, hierarchicalTree, graphAndTreeEnd, nowLevel, allowDifference, NodeMerge, superPixelnum);
+			endTime = clock();
+			cout << "Totle Time : " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
 			if (NodeMerge == false)
 				printf("没有发生融合...\n\n");
 			/*if (NodeMerge == true)

@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <forward_list>
 #include <cmath>
+#include <time.h>
 #include "highgui.h"
 #include "Slic.h"
 #include "cv.h"
@@ -56,10 +57,10 @@ int main()
     //}
 
 	Mat zy1, zy2, zy3, zy4, srimg;
-	zy1 = imread("zy3-1.tif",0);
-	zy2 = imread("zy3-2.tif",0);
-	zy3 = imread("zy3-3.tif",0);
-	zy4 = imread("zy3-4.tif",0);
+	zy1 = imread("b.bmp",0);
+	zy2 = imread("g.bmp",0);
+	zy3 = imread("r.bmp",0);
+	zy4 = imread("ir.bmp",0);
 	if (zy1.empty() || zy2.empty() || zy3.empty() || zy4.empty())
 	{
 		printf("Can not open Image\n");
@@ -118,7 +119,7 @@ int main()
     dims[0] = height;
     dims[1] = width;
     imgbytes = srimg.data; //指向原图像数据域
-    numSuperpixels = 10000; //**超像素个数,适用于demo
+    numSuperpixels = 100000; //**超像素个数,适用于demo
     compactness = 15; //**紧凑度
     
 

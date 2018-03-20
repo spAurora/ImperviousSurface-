@@ -3,6 +3,7 @@ class ObjectNode : public CSuperPixelSet
 {
 public:
 	int objectTypes;  //地物类别
+	int haveInit;
 	
 	//协方差矩阵
 	//形态学相关
@@ -24,7 +25,8 @@ public:
 	ObjectNode()
 	{
 		borderLength = 0;
-		objectTypes = 0;//0未分类，1水体，2植被，3裸土，4建筑，5道路  
+		objectTypes = 0;//0未分类，1水体，2植被，3裸土，4建筑，5道路
+		haveInit = 0;
 	}
 
 	//成员函数
@@ -88,7 +90,7 @@ void searchTreeNodeWithLevel(BTreeNode* hierarchicalTree, int level, int superPi
 		searchTreeNodeWithLevel(hierarchicalTree->right, level, superPixelNum);
 };
 
-//设置某结点所有基层结点的值
+//设置某结点所有基层结点的子像素值
 void setNowLevelNodeValue(int *labels, int &setValue, BTreeNode* htNode, CSuperPixelSet* csps)
 {
 	if (htNode->level == 1)
@@ -103,6 +105,7 @@ void setNowLevelNodeValue(int *labels, int &setValue, BTreeNode* htNode, CSuperP
 		setNowLevelNodeValue(labels, setValue, htNode->right, csps);
 }
 
+//遍历某等级下的所有结点
 void setAllNodeValue(int *labels, int level, BTreeNode* hierarchicalTree, int &setValue, CSuperPixelSet* csps)
 {
 	if(hierarchicalTree->level <= level)
@@ -135,6 +138,7 @@ void createNewObjectSet(int* newLabels, cv::Mat &srimg, ObjectNode* oNode, int o
 			oNode[i].avgG /= oNode[i].pixelnum;
 			oNode[i].avgR /= oNode[i].pixelnum;
 			oNode[i].avgNIR /= oNode[i].pixelnum;
+			oNode[i].id = i;
 			oNode[i].objectTypes = 0; //定义地物类为未定义
 			//oNode[i].formFeatureInit(width);
 		}
@@ -188,5 +192,23 @@ void createNewToplogicalGraph(int *newLabels, int width, int height, ArrayHeadGr
 						newAHGn[newLabels[(i+1)*width+j]].pGraphNodeList.push_front(newLabels[i*width + j]);
 					}
 			}
+		}
+}
+
+//按照某项特征从某个类别转换到另一个类别
+void changeNodeTypes(int changeFrom, bool (*fp)(ObjectNode*, int, int), int changeTo, int objectNum, int width, ObjectNode* oNode, int lowerLimit, int upperLimit)
+{
+	for (int i = 0; i<objectNum; i++)
+		if (oNode[i].objectTypes == changeFrom)
+		{
+			//如果之前没有初始化就初始化
+			if (oNode[i].haveInit == 0)
+			{
+				oNode[i].formFeatureInit(width);
+				oNode[i].spectralFeatureInit();
+				oNode[i].haveInit = 1;
+			}
+			if ((*fp)(&oNode[i],lowerLimit, upperLimit) == true)
+				oNode[i].objectTypes = changeTo;
 		}
 }
