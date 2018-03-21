@@ -1,3 +1,6 @@
+extern int width;
+extern int height;
+
 using namespace std;
 class ObjectNode : public CSuperPixelSet
 {
@@ -30,6 +33,26 @@ public:
 	}
 
 	//成员函数
+
+	//展示信息
+	void showInformation()
+	{
+		this->formFeatureInit(width);
+		this->spectralFeatureInit();
+		printf("ID：%d\n", this->id);
+		printf("Area: %d\n", this->pixelnum);
+		printf("borderLength:%d\n", this->borderLength);
+		printf("shapeIndex: %lf\n", this->shapeIndex);
+		printf("density:%lf\n", this->density);
+		printf("brightnessBGRNIR:%lf\n", this->brightnessBGRNIR);
+		printf("brightnessBGR:%lf\n", this->brightnessBGR);
+		printf("NDVI:%lf\n", this->NDVI);
+		printf("NDWI:%lf\n", this->NDWI);
+		printf("BAI:%lf\n", this->BAI);
+		printf("SBI:%lf\n\n", this->SBI);
+		
+	}
+
 	//初始化形态信息
 	//计算依赖协方差矩阵
 	void formFeatureInit(int width)
@@ -195,20 +218,3 @@ void createNewToplogicalGraph(int *newLabels, int width, int height, ArrayHeadGr
 		}
 }
 
-//按照某项特征从某个类别转换到另一个类别
-void changeNodeTypes(int changeFrom, bool (*fp)(ObjectNode*, int, int), int changeTo, int objectNum, int width, ObjectNode* oNode, int lowerLimit, int upperLimit)
-{
-	for (int i = 0; i<objectNum; i++)
-		if (oNode[i].objectTypes == changeFrom)
-		{
-			//如果之前没有初始化就初始化
-			if (oNode[i].haveInit == 0)
-			{
-				oNode[i].formFeatureInit(width);
-				oNode[i].spectralFeatureInit();
-				oNode[i].haveInit = 1;
-			}
-			if ((*fp)(&oNode[i],lowerLimit, upperLimit) == true)
-				oNode[i].objectTypes = changeTo;
-		}
-}

@@ -13,18 +13,19 @@
 #include "cv.h"
 #include "SlicMerge.h"
 #include "HierarchicalTree.h"
+#include "classify.h"
 
 #pragma comment(linker, "/STACK:102400000,102400000")    //防止栈溢出
 using namespace cv;
 
-
+int width;
+int height;
 //@为可优化点，**为自行设置参数
 int main()
 {
     //先不考虑Alpha通道
     //Mat srimg;
-    int width;
-    int height;
+
     int sz;
     int i, ii;
     int x, y;
@@ -81,7 +82,7 @@ int main()
 			srimg.data[(i*size.width+j)*4+3]=zy4.data[i*size.width+j];
 		}
 	namedWindow("srimg");
-	imshow("Superpixel",srimg);
+	imshow("srimg",srimg);
 	waitKey(0);
     //分离三个RGB通道
     width = srimg.cols;
@@ -119,7 +120,7 @@ int main()
     dims[0] = height;
     dims[1] = width;
     imgbytes = srimg.data; //指向原图像数据域
-    numSuperpixels = 100000; //**超像素个数,适用于demo
+    numSuperpixels = 1500; //**超像素个数,适用于demo
     compactness = 15; //**紧凑度
     
 
@@ -206,11 +207,11 @@ int main()
 	//		++curr;
 	//	}
 	//}
-	printf("%d\n", finalNumberOfLabels*2-2);
+	printf("\n最终层次树结点数：%d\n", finalNumberOfLabels*2-2);
 	system("pause");
 	
 	//构建层次树
-	createHierarchicalTree(mAhgn, hierarchicalTree, srimg, 50, finalNumberOfLabels);
+	createHierarchicalTree(mAhgn, hierarchicalTree, srimg, 200, finalNumberOfLabels);
 
 	int level;
 	int *newLabels = new int[height*width] ();
@@ -223,7 +224,7 @@ int main()
 		
 
 
-		printf("融合后面块数：%d\n", setValue+1);
+		printf("objectNum: %d\n", setValue+1);
 		
 		//放弃层次树结点中的其它信息，只保留层次信息
 		//基于新联通图层建立新对象面块集合以及拓扑关系信息
@@ -233,6 +234,27 @@ int main()
 		createNewObjectSet(newLabels, srimg, oNode, objectNum, width, height);
 		createNewToplogicalGraph(newLabels, width, height, newAHGn, objectNum,oNode);
 
+		int fromWhatType, toWhatType, whatfeather;
+		double lowerLimit, upperLimit;
+		printf("please Input classify parameter:\n");
+		scanf("%d%d%lf%lf%d", &fromWhatType, &toWhatType, &lowerLimit,&upperLimit, &whatfeather);
+		switch(whatfeather)
+		{
+		case 0: {changeNodeTypes(fromWhatType, classifyByArea, toWhatType, objectNum, width, oNode, lowerLimit, upperLimit);break;}
+		case 1:	{changeNodeTypes(fromWhatType, classifyByDensity, toWhatType, objectNum, width, oNode, lowerLimit, upperLimit);break;}
+		case 2:	{changeNodeTypes(fromWhatType, classifyByBrightnessBGR, toWhatType, objectNum, width, oNode, lowerLimit, upperLimit);break;}
+		case 3:	{changeNodeTypes(fromWhatType, classifyByBrightnessBGRNIR, toWhatType, objectNum, width, oNode, lowerLimit, upperLimit);break;}
+		case 4:	{changeNodeTypes(fromWhatType, classifyByNDVI, toWhatType, objectNum, width, oNode, lowerLimit, upperLimit);break;}
+		case 5:	{changeNodeTypes(fromWhatType, classifyByNDWI, toWhatType, objectNum, width, oNode, lowerLimit, upperLimit);break;}
+		case 6:	{changeNodeTypes(fromWhatType, classifyBySBI, toWhatType, objectNum, width, oNode, lowerLimit, upperLimit);break;}
+		case 7:	{changeNodeTypes(fromWhatType, classifyByBAI, toWhatType, objectNum, width, oNode, lowerLimit, upperLimit);break;}
+		case 8:	{changeNodeTypes(fromWhatType, classifyByShapeIndex, toWhatType, objectNum, width, oNode, lowerLimit, upperLimit);break;}
+		}
+
+		//展示部分对象信息
+		for (int i = 0; i< 10; i++)
+			oNode[i].showInformation();
+
 		//融合效果展示
 		Mat imgMerge = srimg.clone();
 		for (int i = 1; i<height-1; i++)
@@ -241,10 +263,26 @@ int main()
 				//不考虑图像边缘
 				if (newLabels[i*width + j] != newLabels[(i-1)*width +j] || newLabels[i*width + j] != newLabels[(i+1)*width +j] || newLabels[i*width + j] != newLabels[i*width +j+1] || newLabels[i*width + j] != newLabels[i*width + j-1])
 				{
-					imgMerge.data[(i*width+j)*4] = 0;
-					imgMerge.data[(i*width+j)*4+1] = 0;
-					imgMerge.data[(i*width+j)*4+2] = 255;
-					imgMerge.data[(i*width+j)*4+3] = 0;
+					if (oNode[newLabels[i*width + j]].haveInit == 0)
+					{
+						oNode[newLabels[i*width + j]].formFeatureInit(width);
+						oNode[newLabels[i*width + j]].spectralFeatureInit();
+						oNode[newLabels[i*width + j]].haveInit = 1;
+					}
+					if (oNode[newLabels[i*width+j]].objectTypes == 1)
+					{
+						imgMerge.data[(i*width+j)*4] = 255;
+						imgMerge.data[(i*width+j)*4+1] = 0;
+						imgMerge.data[(i*width+j)*4+2] = 0;
+						imgMerge.data[(i*width+j)*4+3] = 0;
+					}
+					else
+					{
+						imgMerge.data[(i*width+j)*4] = 0;
+						imgMerge.data[(i*width+j)*4+1] = 0;
+						imgMerge.data[(i*width+j)*4+2] = 255;
+						imgMerge.data[(i*width+j)*4+3] = 0;
+					}
 				}	
 			}
 
