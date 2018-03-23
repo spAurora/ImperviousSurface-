@@ -1,4 +1,4 @@
-
+#include <forward_list>
 class CSuperPixelSet  //超像素实体类
 {
 public:
@@ -253,7 +253,7 @@ void createToplogicalGraph(int*clabels, int width, int height, ArrayHeadGraphNod
 		for (int i = 0; i<superPixelnum;i++)
 			mAhgn[i].pGraphNodeList.sort(cmp);
 		endTime = clock();
-		cout << "排序Totle Time : " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
+		//cout << "排序Totle Time : " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
 		
 		forward_list<GraphNode>::iterator it;
 		for (it = mAhgn[30].pGraphNodeList.begin(); it!= mAhgn[30].pGraphNodeList.end(); it++)
@@ -537,7 +537,7 @@ void calculateUnion(int childNodeLoc_1, int childNodeLoc_2, int graphAndTreeEnd,
 	//翻转
 	mAhgn[graphAndTreeEnd].pGraphNodeList.reverse();
 	endTime = clock();
-	cout << "取并集part1:Totle Time : " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
+	//cout << "取并集part1:Totle Time : " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
 
 	//check
 	if(mAhgn[childNodeLoc_1].pGraphNodeList.empty() == true)
@@ -572,7 +572,7 @@ void calculateUnion(int childNodeLoc_1, int childNodeLoc_2, int graphAndTreeEnd,
 		}
 	}
 	endTime = clock();
-	cout << "取并集part2:Totle Time : " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
+	//cout << "取并集part2:Totle Time : " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
 	//printf("结点2的邻接点清理完毕(不包括要融合的两个点)\n");
 	/*for (itt = mAhgn[childNodeLoc_2].pGraphNodeList.begin(); itt!= mAhgn[childNodeLoc_2].pGraphNodeList.end(); itt++)
 		if (itt->ID != childNodeLoc_1);
@@ -614,12 +614,12 @@ void DFS(int location,int *vnum, ArrayHeadGraphNode* mAhgn,BTreeNode* hierarchic
 				NodeMerge = true;
 				graphAndTreeEnd++;
 				
-				printf("融合即将开始,两结点c1 c2下标为%d, %d\n, level: %d\n", location, mit->ID, nowLevel);
+				////printf("融合即将开始,两结点c1 c2下标为%d, %d\n, level: %d\n", location, mit->ID, nowLevel);
 				//printf("开始融合：\n");
 				startTime = clock();
 				calculateUnion(location, mit->ID, graphAndTreeEnd, mAhgn, hierarchicalTree); //拓扑图取并集********
 				endTime = clock();
-				cout << "取并集Totle Time : " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
+				//cout << "取并集Totle Time : " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
 				//printf("扩展到的下标：%d\n", graphAndTreeEnd);
 				
 				//mAhgn[mit->ID].hadRemove = true;
@@ -695,7 +695,7 @@ void traversalAndMerge(ArrayHeadGraphNode* mAhgn,BTreeNode* hierarchicalTree,int
 			int mDepth = 0;
 			//printf("从第%d开始遍历\n", i);
 			DFS(i, vnum, mAhgn, hierarchicalTree, graphAndTreeEnd, nowLevel, allowDifference, NodeMerge, superPixelNum, mDepth); //图是完全连通的
-			printf("递归深度:%d\n",mDepth);
+			//printf("递归深度:%d\n",mDepth);
 			break;
 		}
 
@@ -723,7 +723,7 @@ void createHierarchicalTree(ArrayHeadGraphNode* mAhgn,BTreeNode* hierarchicalTre
 	{
 		nowLevel++;
 		allowDifference =allowDifference + ((double)510/(double)levelindex);
-		printf("allDifference:%lf\n", allowDifference);
+		//printf("allDifference:%lf\n", allowDifference);
 		//system("pause");
 		NodeMerge = false;
 		do 
@@ -736,13 +736,13 @@ void createHierarchicalTree(ArrayHeadGraphNode* mAhgn,BTreeNode* hierarchicalTre
 			startTime = clock();
 			traversalAndMerge(mAhgn, hierarchicalTree, graphAndTreeEnd, nowLevel, allowDifference, NodeMerge, superPixelnum);
 			endTime = clock();
-			cout << "Totle Time : " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
-			if (NodeMerge == false)
-				printf("没有发生融合...\n\n");
+//			cout << "Totle Time : " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
+			//if (NodeMerge == false)
+				//printf("没有发生融合...\n\n");
 			/*if (NodeMerge == true)
 				graphAndTreeEnd++;*/
 		} while (NodeMerge == true);
 
-		printf("处理下一等级.....\n");
+		//printf("处理下一等级.....\n");
 	}
 }
